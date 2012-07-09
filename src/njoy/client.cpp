@@ -37,7 +37,6 @@ int          g_iClientId = -1;
  */
 std::string g_strHostname             = DEFAULT_HOST;
 int         g_iConnectTimeout         = DEFAULT_CONNECT_TIMEOUT;
-int         g_iPortStream             = DEFAULT_STREAM_PORT;
 int         g_iPortWeb                = DEFAULT_WEB_PORT;
 int         g_iUpdateInterval         = DEFAULT_UPDATE_INTERVAL;
 std::string g_strUsername             = "";
@@ -81,10 +80,6 @@ void ADDON_ReadSettings(void)
     g_strPassword = buffer;
   else
     g_strPassword = "";
-  
-  /* read setting "streamport" from settings.xml */
-  if (!XBMC->GetSetting("streamport", &g_iPortStream))
-    g_iPortStream = DEFAULT_STREAM_PORT;
   
   /* read setting "webport" from settings.xml */
   if (!XBMC->GetSetting("webport", &g_iPortWeb))
@@ -236,16 +231,6 @@ ADDON_STATUS ADDON_SetSetting(const char *settingName, const void *settingValue)
     {
       XBMC->Log(LOG_INFO, "%s - Changed Setting 'pass'", __FUNCTION__);
       return ADDON_STATUS_NEED_RESTART;
-    }
-  }
-  else if (str == "streamport")
-  {
-    int iNewValue = *(int*) settingValue + 1;
-    if (g_iPortStream != iNewValue)
-    {
-      XBMC->Log(LOG_INFO, "%s - Changed Setting 'streamport' from %u to %u", __FUNCTION__, g_iPortStream, iNewValue);
-      g_iPortStream = iNewValue;
-      return ADDON_STATUS_OK;
     }
   }
   else if (str == "webport")

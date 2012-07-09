@@ -277,8 +277,6 @@ bool N7::Open()
   XBMC->Log(LOG_NOTICE, "%s - N7 Addon Configuration options", __FUNCTION__);
   XBMC->Log(LOG_NOTICE, "%s - Hostname: '%s'", __FUNCTION__, g_strHostname.c_str());
   XBMC->Log(LOG_NOTICE, "%s - WebPort: '%d'", __FUNCTION__, g_iPortWeb);
-  XBMC->Log(LOG_NOTICE, "%s - StreamPort: '%d'", __FUNCTION__, g_iPortStream);
-  
 
   LoadChannelData();
 
@@ -346,7 +344,7 @@ void  *N7::Process()
 bool N7::LoadChannels() 
 {
   CStdString strUrl;
-  strUrl.Format("%s/n7channel_nt.xml", m_strURL.c_str());
+  strUrl.Format("%sn7channel_nt.xml", m_strURL.c_str());
 
   CStdString strXML = GetHttpXML(strUrl);
 
