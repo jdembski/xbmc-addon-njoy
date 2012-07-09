@@ -1,12 +1,13 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
-
-# Compiled Dynamic libraries
-*.so
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
+Makefile.in
+aclocal.m4
+configure
+autom4te.cache
+autotools
+config.*
+libtool
+Makefile
+xbmc-addon-vuplus-*.tar.gz
+pvr.vuplus-*.zip
+addons/pvr.vuplus/XBMC_vuplus.pvr
+addons/pvr.vuplus/addon.xml
+addons/pvr.vuplus/changelog.txt
