@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon
+  id="pvr.njoy"
+  version="@VERSION@"
+  name="NJOY PVR Client"
+  provider-name="Joerg Dembski">
+  <requires>
+    <c-pluff version="0.1"/>
+  </requires>
+  <extension
+    point="xbmc.pvrclient"
+    library_linux="XBMC_njoy.pvr"
+    library_osx="XBMC_njoy.pvr"
+    library_wingl="XBMC_njoy_win32.pvr"
+    library_windx="XBMC_njoy_win32.pvr"/>
+  <extension point="xbmc.addon.metadata">
+    <summary>XBMC's frontend for N7 Njoy</summary>
+    <description>N7 Njoy frontend; supporting streaming of Live TV and EPG. For parsing the XML output from the N7 webinterface it uses the xmlParser library developed by Frank Vanden Berghen (http://www.applied-mathematics.net/tools/xmlParser.html). Many thanks for this!
+</description>
+    <disclaimer>This is unstable software! The authors are in no way responsible for failed streamings, incorrect EPG data, wasted hours, or any other undesirable effects..</disclaimer>
+    <platform>all</platform>
+  </extension>
+</addon>

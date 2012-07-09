@@ -1,0 +1,38 @@
+XBMC N7 PVR Add-on
+------------------------------------------
+
+THIS IS A PRELIMINARY README AND IS SUBJECT TO CHANGE!!!
+
+Written by:                  Joerg Dembski
+
+Project's homepage:          
+
+Latest version available at: 
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+------------------------------------------
+
+This is a PVR Add-on for XBMC to add N7 network DVB adapters a TV/PVR Backend to XBMC.
+
+It wants to add support for Live TV watching and EPG TV Guide to use over the Network.
+
+For parsing the XML output from the N7 webinterface it uses the xmlParser library developed by Frank Vanden Berghen (http://www.applied-mathematics.net/tools/xmlParser.html). The build scripts are based on Alexander Pipelka's xbmc-addon-xvdr. Many thanks for this!    
+
+---------------------------------------------
+ADDON COMPILATION & INSTALLATION INSTRUCTIONS
+
+IMPORTANT:
+Please disable *all* PVR addons *before* installing the N7 addon!
+
+- Clone the GIT repository
+- cd xbmc-addon-njoy
+- sh autogen.sh
+- ./configure --prefix=/usr/lib/xbmc (or $HOME/.xbmc)
+- make
+- make install
+
+This will install the plugin into your /usr/lib/xbmc/addons or $HOME/.xbmc/addons directory
