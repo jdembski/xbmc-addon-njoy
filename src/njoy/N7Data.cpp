@@ -114,8 +114,8 @@ void N7::LoadChannelData()
     return;
   }
   
-  xNode = xMainNode.getChildNode("channellist");
-  n = xNode.nChildNode("channel");
+  XMLNode xNode = xMainNode.getChildNode("channellist");
+  int n = xNode.nChildNode("channel");
 
   XBMC->Log(LOG_INFO, "%s Number of elements: '%d'", __FUNCTION__, n);
 
@@ -174,11 +174,13 @@ void N7::StoreChannelData()
   if(stream.fail())
     XBMC->Log(LOG_ERROR, "%s Could not open channeldata file for writing!", __FUNCTION__);
 
+  CStdString strTmp;
 
   stream << "<channeldata>\n";
   stream << "\t<version>\n" << CHANNELDATAVERSION;
   stream << "\t</version>\n";
   stream << "\t<channellist>\n";
+
   for (unsigned int iChannelPtr = 0; iChannelPtr < m_channels.size(); iChannelPtr++)
   {
     stream << "\t\t<channel>\n";
@@ -343,100 +345,80 @@ void  *N7::Process()
 
 bool N7::LoadChannels() 
 {
+  CStdString strUrl;
+  strUrl.Format("%s/n7channel_nt.xml", m_strURL.c_str());
 
-/*
-  XBMC->Log(LOG_INFO, "%s loading channel group: '%s'", __FUNCTION__, strGroupName.c_str());
+  CStdString strXML = GetHttpXML(strUrl);
 
-  CStdString strTmp;
-  strTmp.Format("%sweb/getservices?sRef=%s", m_strURL.c_str(), URLEncodeInline(strServiceReference.c_str()));
-
-  CStdString strXML = GetHttpXML(strTmp);  
-
-  XMLResults xe;
-  XMLNode xMainNode = XMLNode::parseString(strXML.c_str(), NULL, &xe);  
-
-  if(xe.error != 0)  {    
-    XBMC->Log(LOG_ERROR, "%s Unable to parse XML. Error: '%s' ", __FUNCTION__, XMLNode::getError(xe.error));    
-    return false;  
-  }  
-
-  XMLNode xNode = xMainNode.getChildNode("e2servicelist");
-  int n = xNode.nChildNode("e2service");
-
-  XBMC->Log(LOG_INFO, "%s Number of elements: '%d'", __FUNCTION__, n);
-  bool bRadio;
-
-  bRadio = !strGroupName.compare("radio");
-
-  for (int i = 0; i<n; i++)
+  if(strXML.length() == 0)
   {
-    XMLNode xTmp = xNode.getChildNode("e2service", i);
-    CStdString strTmp;
-    
-    if (!GetString(xTmp, "e2servicereference", strTmp))
-      continue;
-    
-    // Check whether the current element is not just a label
-    if (strTmp.compare(0,5,"1:64:") == 0)
-      continue;
-
-    VuChannel newChannel;
-    newChannel.bRadio = bRadio;
-    newChannel.strGroupName = strGroupName;
-    newChannel.iUniqueId = m_channels.size()+1;
-    newChannel.iChannelNumber = m_channels.size()+1;
-    newChannel.strServiceReference = strTmp;
-
-    if (!GetString(xTmp, "e2servicename", strTmp)) 
-      continue;
-
-    newChannel.strChannelName = strTmp;
- 
-    std::string strIcon;
-    strIcon = newChannel.strServiceReference.c_str();
-
-    int j = 0;
-    std::string::iterator it = strIcon.begin();
-
-    while (j<10 && it != strIcon.end())
-    {
-      if (*it == ':')
-        j++;
-
-      it++;
-    }
-    std::string::size_type index = it-strIcon.begin();
-
-    strIcon = strIcon.substr(0,index);
-
-    it = strIcon.end() - 1;
-    if (*it == ':')
-    {
-      strIcon.erase(it);
-    }
-    
-    CStdString strTmp2;
-
-    strTmp2.Format("%s", strIcon.c_str());
-
-    std::replace(strIcon.begin(), strIcon.end(), ':','_');
-    strIcon = g_strIconPath.c_str() + strIcon + ".png";
-
-    newChannel.strIconPath = strIcon;
-
-    strTmp.Format("");
-
-    if ((g_strUsername.length() > 0) && (g_strPassword.length() > 0))
-      strTmp.Format("%s:%s@", g_strUsername.c_str(), g_strPassword.c_str());
-
-    strTmp.Format("http://%s%s:%d/%s", strTmp.c_str(), g_strHostname, g_iPortStream, strTmp2.c_str());
-    newChannel.strStreamURL = strTmp;
-
-    m_channels.push_back(newChannel);
-    XBMC->Log(LOG_INFO, "%s Loaded channel: %s, Icon: %s", __FUNCTION__, newChannel.strChannelName.c_str(), newChannel.strIconPath.c_str());
+    XBMC->Log(LOG_DEBUG, "%s - Could not open connection to N7 backend.", __FUNCTION__);
+    m_bIsConnected = false;
   }
+  else
+  {
+    m_bIsConnected = true;
+    XBMC->Log(LOG_DEBUG, "%s - Connected to N7 backend.", __FUNCTION__);
 
-  XBMC->Log(LOG_INFO, "%s Loaded %d Channels", __FUNCTION__, m_channels.size()); */
+    XMLResults xe;
+    XMLNode xMainNode = XMLNode::parseString(strXML.c_str(), NULL, &xe);
+
+    if(xe.error != 0)  {
+      XBMC->Log(LOG_ERROR, "%s Unable to parse XML. Error: '%s' ", __FUNCTION__, XMLNode::getError(xe.error));
+      return false;
+    }
+
+    XMLNode xNode = xMainNode.getChildNode("rss");
+    xNode = xNode.getChildNode("channel");
+    int n = xNode.nChildNode("item");
+
+    XBMC->Log(LOG_INFO, "%s Number of elements: '%d'", __FUNCTION__, n);
+
+    int iUniqueChannelId = 0;
+
+    for(int i=0; i<n; i++)
+    {
+      XMLNode xTmp = xNode.getChildNode("item", i);
+      CStdString strTmp;
+      int iTmp;
+
+      N7Channel newChannel;
+      newChannel.bRadio = false;
+
+      /* channel number */
+      if (!GetInt(xTmp, "number", newChannel.iChannelNumber))
+        newChannel.iChannelNumber = m_channels.size()+1;
+
+      newChannel.iUniqueId = m_channels.size()+1;
+      newChannel.strServiceReference = strTmp;
+
+      if (!GetString(xTmp, "title", strTmp)) 
+        continue;
+
+           /* channel name */
+      if (!GetString(xTmp, "title", strTmp))
+        continue;
+      newChannel.strChannelName = strTmp;
+
+      /* icon path */
+      XMLNode xMedia = xTmp.getChildNode("media:thumbnail");
+      strTmp = xMedia.getAttribute("url");
+
+      newChannel.strIconPath = strTmp;
+
+      /* channel url */
+      if (!GetString(xTmp, "guid", strTmp))
+        newChannel.strStreamURL = "";
+      else
+        newChannel.strStreamURL = strTmp;
+
+      m_channels.push_back(newChannel);
+
+      XBMC->Log(LOG_INFO, "%s Loaded channel: %s, Icon: %s", __FUNCTION__, newChannel.strChannelName.c_str(), newChannel.strIconPath.c_str());
+    }
+
+  }
+  XBMC->Log(LOG_INFO, "%s Loaded %d Channels", __FUNCTION__, m_channels.size()); 
   return true;
 }
 
@@ -461,7 +443,7 @@ CStdString N7::GetHttpXML(CStdString& url)
   curl_global_init(CURL_GLOBAL_ALL);
   curl_handle = curl_easy_init();
   curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, &VuWebResponseCallback);
+  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, &N7WebResponseCallback);
   curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&response);
   curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "vuplus-pvraddon-agent/1.0");
   curl_easy_perform(curl_handle);
@@ -488,7 +470,7 @@ const char * N7::GetServerName()
   return m_strServerName.c_str();  
 }
 
-int Vu::GetChannelsAmount()
+int N7::GetChannelsAmount()
 {
   return m_channels.size();
 }
